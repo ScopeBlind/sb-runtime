@@ -67,7 +67,7 @@ we'll move to a stricter review model.
 
 ## Licence
 
-By submitting a PR you agree your contribution is licensed MIT under the
+By submitting a PR you agree your contribution is licensed Apache-2.0 under the
 project LICENCE. If you work at an employer that claims rights to your code,
 please sort that out before PRing.
 

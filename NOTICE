@@ -1,0 +1,21 @@
+sb-runtime
+Copyright 2026 ScopeBlind Contributors
+
+This product is part of the ScopeBlind / Veritas Acta ecosystem of
+verifiable infrastructure for agentic systems. Related open-source
+components:
+
+  * @veritasacta/verify   (Apache-2.0)  — offline receipt verifier
+  * @veritasacta/artifacts (Apache-2.0) — signed-artifact envelope
+  * @veritasacta/protocol  (Apache-2.0) — open protocol reference
+  * protect-mcp            (MIT)        — Claude Code / MCP hooks
+
+This product includes software developed at
+ScopeBlind (https://scopeblind.com).
+
+Dependencies retain their original licenses. Notable upstream components:
+
+  * cedar-policy (Apache-2.0) — AWS
+  * landlock-rs  (Apache-2.0 / MIT) — Landlock LSM working group
+  * seccompiler  (Apache-2.0) — rust-vmm
+  * ed25519-dalek (BSD-3-Clause) — dalek-cryptography

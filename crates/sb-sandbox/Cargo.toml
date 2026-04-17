@@ -9,15 +9,23 @@ homepage.workspace    = true
 authors.workspace     = true
 description = "OS-native sandboxing primitives for sb-runtime. Linux (Landlock + seccomp) today; macOS / Windows scaffolded."
 
+[features]
+# Off by default in v0.1-alpha. The profile + apply surface is stable; the
+# Linux backend implementation is being stabilized with design partners
+# (see https://github.com/ScopeBlind/sb-runtime/issues/1 tracking).
+# Enable with `--features linux-sandbox` on Linux x86_64.
+default       = []
+linux-sandbox = ["dep:landlock", "dep:seccompiler", "dep:nix"]
+
 [dependencies]
 serde      = { workspace = true }
 serde_json = { workspace = true }
 thiserror  = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-landlock    = { workspace = true }
-seccompiler = { workspace = true }
-nix         = { workspace = true }
+landlock    = { workspace = true, optional = true }
+seccompiler = { workspace = true, optional = true }
+nix         = { workspace = true, optional = true }
 
 [lints]
 workspace = true

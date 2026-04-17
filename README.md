@@ -19,10 +19,15 @@
 
 | Platform             | Sandbox                    | Cedar + receipts |
 |----------------------|----------------------------|------------------|
-| Linux x86_64         | Landlock + seccomp         | ✓                |
-| Linux aarch64        | Refuses (see [issue #1][1])| ✓ (w/ `--allow-unsandboxed`) |
+| Linux x86_64         | Landlock + seccomp — opt-in via `--features linux-sandbox` (see [issue #1][1]) | ✓ |
+| Linux aarch64        | Refuses (see [issue #1][1]) | ✓                |
 | macOS                | Stub (`--allow-unsandboxed`) — [issue #3][3] | ✓ |
 | Windows              | Stub (`--allow-unsandboxed`) | ✓              |
+
+The `linux-sandbox` cargo feature is off by default in v0.1-alpha while the
+Landlock/seccomp backend is stabilized. The JCS-canonical, Ed25519-signed,
+hash-chained receipts (plus Cedar policy evaluation) work on every platform
+today.
 
 We're actively looking for design-partner input on the AGT provider interface,
 the Cedar schema for agent actions, and the macOS/Windows backend priorities —
@@ -84,7 +89,7 @@ no agent code changes required.
 
 ## Licensing
 
-MIT. No runtime dependencies on ScopeBlind services; no telemetry. The optional managed tier (hosted receipt archival, team dashboards, compliance exports) is available at [scopeblind.com/pricing](https://scopeblind.com/pricing) but the sandbox runs local-only forever with the free binary.
+Apache-2.0. No runtime dependencies on ScopeBlind services; no telemetry. The optional managed tier (hosted receipt archival, team dashboards, compliance exports) is available at [scopeblind.com/pricing](https://scopeblind.com/pricing) but the sandbox runs local-only forever with the free binary.
 
 ## Design-partner program
 

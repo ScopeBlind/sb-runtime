@@ -32,7 +32,7 @@ use thiserror::Error;
 pub mod profile;
 pub use profile::{NetworkPolicy, Profile, SyscallPolicy};
 
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "linux-sandbox"))]
 mod linux;
 
 #[derive(Debug, Error)]
