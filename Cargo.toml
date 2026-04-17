@@ -1,0 +1,64 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/sb-cli",
+    "crates/sb-sandbox",
+    "crates/sb-policy",
+    "crates/sb-receipt",
+]
+
+[workspace.package]
+version = "0.1.0-alpha.1"
+edition = "2021"
+rust-version = "1.78"
+license = "MIT"
+repository = "https://github.com/scopeblind/sb-runtime"
+homepage = "https://scopeblind.com"
+authors = ["ScopeBlind Contributors"]
+
+[workspace.dependencies]
+# In-workspace crates
+sb-sandbox = { version = "0.1.0-alpha.1", path = "crates/sb-sandbox" }
+sb-policy  = { version = "0.1.0-alpha.1", path = "crates/sb-policy" }
+sb-receipt = { version = "0.1.0-alpha.1", path = "crates/sb-receipt" }
+
+# Core
+anyhow     = "1.0"
+thiserror  = "1.0"
+serde      = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Crypto
+ed25519-dalek = { version = "2.1", features = ["rand_core"] }
+rand          = "0.8"
+sha2          = "0.10"
+hex           = "0.4"
+
+# CLI
+clap    = { version = "4.5", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Policy engine
+cedar-policy = "4.5"
+
+# Linux sandboxing — only built on cfg(target_os = "linux")
+landlock   = "0.4"
+seccompiler = "0.5"
+nix        = { version = "0.29", features = ["process", "fs", "user"] }
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+all         = { level = "deny", priority = -1 }
+pedantic    = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"
+panic       = "warn"
+
+[profile.release]
+opt-level     = 3
+lto           = true
+codegen-units = 1
+strip         = true

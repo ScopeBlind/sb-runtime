@@ -1,0 +1,32 @@
+[package]
+name        = "sb-cli"
+version.workspace     = true
+edition.workspace     = true
+rust-version.workspace = true
+license.workspace     = true
+repository.workspace  = true
+homepage.workspace    = true
+authors.workspace     = true
+description = "sb-runtime CLI: a single binary that evaluates a Cedar policy, applies an OS-native sandbox, emits a signed receipt, and execs the target command."
+
+[[bin]]
+name = "sb"
+path = "src/main.rs"
+
+[dependencies]
+sb-sandbox = { workspace = true }
+sb-policy  = { workspace = true }
+sb-receipt = { workspace = true }
+
+anyhow              = { workspace = true }
+clap                = { workspace = true }
+ed25519-dalek       = { workspace = true }
+hex                 = { workspace = true }
+rand                = { workspace = true }
+serde               = { workspace = true }
+serde_json          = { workspace = true }
+tracing             = { workspace = true }
+tracing-subscriber  = { workspace = true }
+
+[lints]
+workspace = true
