@@ -54,9 +54,19 @@ pub enum SandboxError {
 /// Must be called **before** `execve`. After `apply` returns `Ok`, the
 /// current process (and every subsequent child) is confined to the profile.
 pub fn apply(profile: &Profile) -> Result<(), SandboxError> {
-    #[cfg(target_os = "linux")]
+    #[cfg(all(target_os = "linux", feature = "linux-sandbox"))]
     {
         linux::apply_linux(profile)
+    }
+
+    #[cfg(all(target_os = "linux", not(feature = "linux-sandbox")))]
+    {
+        let _ = profile;
+        Err(SandboxError::Unsupported(
+            "Linux sandbox backend is opt-in during v0.1-alpha. Build with \
+             `--features linux-sandbox` to enable Landlock + seccomp, or use \
+             --allow-unsandboxed to run with Cedar + receipts only.",
+        ))
     }
 
     #[cfg(target_os = "macos")]
