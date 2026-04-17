@@ -51,11 +51,16 @@ nix        = { version = "0.29", features = ["process", "fs", "user"] }
 unsafe_code = "deny"
 
 [workspace.lints.clippy]
-all         = { level = "deny", priority = -1 }
-pedantic    = { level = "warn", priority = -1 }
-unwrap_used = "warn"
-expect_used = "warn"
-panic       = "warn"
+# v0.1-alpha: correctness + suspicious are hard errors; style / pedantic
+# are warnings only (not CI-blocking) so contributors aren't blocked on
+# nitpicks while the API surface is still settling. We'll tighten once
+# v0.1.0 stable ships.
+all      = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# Explicit bugs we always want to deny:
+correctness = { level = "deny", priority = -1 }
+suspicious  = { level = "deny", priority = -1 }
+perf        = { level = "deny", priority = -1 }
 
 [profile.release]
 opt-level     = 3

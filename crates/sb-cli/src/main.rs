@@ -298,13 +298,13 @@ fn next_chain_link(dir: &std::path::Path) -> Result<(String, u64)> {
         return Ok(("genesis".to_string(), 1));
     }
     let mut files: Vec<_> = std::fs::read_dir(dir)?
-        .filter_map(|e| e.ok())
+        .filter_map(Result::ok)
         .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some("json"))
         .collect();
     if files.is_empty() {
         return Ok(("genesis".to_string(), 1));
     }
-    files.sort_by_key(|e| e.path());
+    files.sort_by_key(std::fs::DirEntry::path);
     let Some(last) = files.last() else {
         return Ok(("genesis".to_string(), 1));
     };
