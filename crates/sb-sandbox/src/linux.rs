@@ -26,10 +26,32 @@ use landlock::{
 };
 
 /// Apply the profile to the current thread+process on Linux.
+///
+/// v0.1 supports x86_64 only. Other Linux architectures (notably aarch64,
+/// which is increasingly common on cloud instances) refuse-to-run with a
+/// clear error rather than silently falling back to a permissive filter —
+/// silently weakening enforcement for users who asked for strict mode is
+/// strictly worse than a hard stop. The aarch64 syscall table lands in
+/// v0.1.1; tracked at https://github.com/ScopeBlind/sb-runtime/issues/1
 pub(crate) fn apply_linux(profile: &Profile) -> Result<(), SandboxError> {
-    apply_landlock(profile)?;
-    apply_seccomp(profile)?;
-    Ok(())
+    #[cfg(not(target_arch = "x86_64"))]
+    {
+        let _ = profile;
+        return Err(SandboxError::Unsupported(
+            "sb-runtime v0.1 Linux backend supports x86_64 only. \
+             aarch64 syscall table is tracked at \
+             https://github.com/ScopeBlind/sb-runtime/issues/1 \
+             (lands in v0.1.1). Use --allow-unsandboxed to run with \
+             Cedar + receipts only on unsupported architectures.",
+        ));
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    {
+        apply_landlock(profile)?;
+        apply_seccomp(profile)?;
+        Ok(())
+    }
 }
 
 fn apply_landlock(profile: &Profile) -> Result<(), SandboxError> {

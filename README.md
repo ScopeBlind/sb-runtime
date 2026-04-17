@@ -15,7 +15,22 @@
 
 `sb-runtime` answers a question several AGT / OpenShell users have been asking: *can we get the "walls + brain + receipts" pattern without Docker/OCI/k3s/gateway infrastructure?* This is a single 8 MB binary that runs on dev laptops, CI, and edge.
 
-**Status: v0.1.0-alpha.1 — design-partner preview.** Linux sandbox backend works (Landlock + seccomp). macOS / Windows backends are stubs; use `--allow-unsandboxed` on those platforms to run with Cedar + receipts only. We're actively looking for design-partner input on the AGT provider interface and the Cedar schema for agent actions — open an issue or reply to [microsoft/agent-governance-toolkit#748](https://github.com/microsoft/agent-governance-toolkit/issues/748).
+**Status: v0.1.0-alpha.1 — design-partner preview.** Honest platform matrix:
+
+| Platform             | Sandbox                    | Cedar + receipts |
+|----------------------|----------------------------|------------------|
+| Linux x86_64         | Landlock + seccomp         | ✓                |
+| Linux aarch64        | Refuses (see [issue #1][1])| ✓ (w/ `--allow-unsandboxed`) |
+| macOS                | Stub (`--allow-unsandboxed`) — [issue #3][3] | ✓ |
+| Windows              | Stub (`--allow-unsandboxed`) | ✓              |
+
+We're actively looking for design-partner input on the AGT provider interface,
+the Cedar schema for agent actions, and the macOS/Windows backend priorities —
+see `CONTRIBUTING.md` or reply to
+[microsoft/agent-governance-toolkit#748](https://github.com/microsoft/agent-governance-toolkit/issues/748).
+
+[1]: https://github.com/ScopeBlind/sb-runtime/issues/1
+[3]: https://github.com/ScopeBlind/sb-runtime/issues/3
 
 ## Quick start
 
@@ -59,6 +74,13 @@ Each sub-crate is usable independently. `sb-receipt` is deliberately minimal (ze
 - **…use OpenShell?** OpenShell is the right design, but it expects Docker/OCI/k3s/gateway infrastructure. `sb-runtime` is the local-first version of the same idea. AGT's `agent-os-kernel` can talk to either; swap via config.
 - **…use firejail / bubblewrap?** Those are filesystem sandboxes. They don't evaluate Cedar policy before the exec, and they don't emit signed receipts. Combine them with `sb-runtime` if you want — `sb` does Cedar + receipts + Landlock+seccomp, they do extra fs isolation layers.
 - **…just use Cedar?** Cedar decides. It doesn't enforce or audit. `sb-runtime` is the enforcement layer.
+
+## Integrating with Microsoft's Agent Governance Toolkit
+
+See [`examples/agt-integration/`](examples/agt-integration/) for a Python
+drop-in shim (`SbRuntimeSkill`) that replaces
+`openshell_agentmesh.skill.GovernanceSkill` field-for-field. Swap via config,
+no agent code changes required.
 
 ## Licensing
 
