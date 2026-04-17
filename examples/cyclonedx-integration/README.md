@@ -69,7 +69,7 @@ If CycloneDX maintainers have thoughts on whether `properties` is the right
 carrier (vs. extending the `signature` definition to accept multiple signers
 with role metadata), the discussion is open at:
 
-> [CycloneDX/specification discussion — link once filed]
+> [CycloneDX/specification discussion #909](https://github.com/CycloneDX/specification/discussions/909)
 
 ## Relationship to the spec
 
