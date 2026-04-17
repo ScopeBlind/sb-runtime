@@ -1,19 +1,65 @@
 # sb-runtime
 
-**Lightweight agent sandbox with Cedar policy and signed receipts.** One Rust binary, no Docker, no k3s, no gateway.
+> A single binary that runs your AI agent inside an OS-level sandbox and
+> signs a receipt for every decision it makes.
 
-```text
-┌──────────────────────────────────────────────────────────────┐
-│  sb exec --policy dev-safe.cedar -- /usr/bin/cat /etc/hosts  │
-│                                                                │
-│  1. Cedar evaluates   → allow / deny (400 µs)                  │
-│  2. Ed25519 receipt   → .receipts/000001.json (tamper-evident) │
-│  3. OS sandbox        → Landlock + seccomp (Linux)             │
-│  4. execve            → the target command runs confined       │
-└──────────────────────────────────────────────────────────────┘
+## What it does, in plain English
+
+You want to run an AI agent — a coding assistant, an autonomous workflow, a
+scripted LLM — but you don't fully trust what it'll do. `sb-runtime` wraps
+the agent and does three things:
+
+1. **Checks a policy before the agent runs.** Is it allowed to invoke
+   `python`? Can it touch `/etc`? Can it open a network socket? You write
+   the rules once in [Cedar](https://www.cedarpolicy.com/) — the same
+   policy language AWS uses for IAM.
+2. **Confines the agent at the OS level** while it runs. On Linux the agent
+   literally cannot open files outside the allowed list, cannot make most
+   syscalls, cannot open network sockets — not because the agent cooperates,
+   because the kernel refuses. (Backend: Landlock + seccomp. Opt-in for
+   v0.1-alpha; see the platform matrix below.)
+3. **Signs a receipt for every decision.** Ed25519-signed, hash-chained,
+   verifiable offline by anyone with the public key. When something goes
+   wrong you can *prove* — not claim — what happened.
+
+You don't modify the agent. You wrap it:
+
+```bash
+sb exec --policy dev.cedar -- python my_agent.py
 ```
 
-`sb-runtime` answers a question several AGT / OpenShell users have been asking: *can we get the "walls + brain + receipts" pattern without Docker/OCI/k3s/gateway infrastructure?* This is a single 8 MB binary that runs on dev laptops, CI, and edge.
+## Who this is for
+
+- **Security teams** running AI coding assistants they didn't write.
+- **Compliance teams** who need tamper-evident evidence of agent behaviour.
+- **CI and edge deployments** where Docker / k3s / OpenShell is too heavy.
+- **Anyone nervous** about letting an LLM run commands on their machine.
+
+## How it relates to `protect-mcp`
+
+`sb-runtime` is the **OS sandbox around** the agent. [`protect-mcp`](https://www.npmjs.com/package/protect-mcp)
+is the **policy check inside** the agent — a hook that sits between the LLM
+and its tool registry in Claude Code / MCP. They're complementary:
+
+```
+┌─────────────────────────────────────────────────┐
+│  sb-runtime   ← OS refuses forbidden syscalls   │
+│  ┌───────────────────────────────────────────┐  │
+│  │  agent process (Claude Code, Python, …)   │  │
+│  │  ┌─────────────────────────────────────┐  │  │
+│  │  │  protect-mcp                        │  │  │
+│  │  │    ← Cedar decides per tool call,   │  │  │
+│  │  │      receipts every decision        │  │  │
+│  │  └─────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────┘
+```
+
+Use `protect-mcp` alone if you wrote the agent and trust its framework to
+honour decisions. Use `sb-runtime` alone if you didn't write the agent and
+want the OS to contain it regardless. Use both for belt-and-braces.
+
+---
 
 **Status: v0.1.0-alpha.1 — design-partner preview.** Honest platform matrix:
 
