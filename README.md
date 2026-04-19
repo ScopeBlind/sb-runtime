@@ -106,7 +106,12 @@ sb-runtime receipts are **offline-verifiable** and **tamper-evident**:
 - **Tamper-evident:** any modification to the receipt payload, signature, or chain linkage breaks verification. Exit code 1 is proven tampering; exit 0 is proven authenticity.
 - **No vendor trust:** verification depends only on Ed25519 math and JCS canonicalization (both open standards). No ScopeBlind infrastructure is in the verification path.
 
-What this **does not** provide: **issuer-blind / unlinkable / zero-knowledge** verification in the VOPRF sense. The Ed25519 signature identifies the signer via the public key. For use cases that require the verifier cannot link receipts to the same signer (privacy-preserving metered authorization, anonymous credentials), see the [Veritas Acta VOPRF verifier](https://veritasacta.com/voprf) — a separate product with different cryptographic properties. `sb-runtime` doesn't need it for decision auditability; the two solve different problems.
+What this **does not** provide: **issuer-blind / unlinkable / zero-knowledge** verification in the VOPRF sense. The Ed25519 signature identifies the signer via the public key. If you need verification where the verifier cannot link multiple presentations to the same signer (privacy-preserving metered authorization, anonymous credentials, unlinkable rate limiting), that's a different primitive with its own stack:
+
+- **Protocol and verifier**: open-source under [Veritas Acta](https://github.com/VeritasActa), Apache-2.0. Anyone can verify.
+- **Production issuer**: [ScopeBlind](https://scopeblind.com) sells the managed VOPRF issuance service. You can run your own issuer in principle; in practice the cryptographic correctness, key rotation, and metering make the managed service the usual choice.
+
+`sb-runtime` doesn't require VOPRF for decision auditability — Ed25519 receipts cover that. The VOPRF product solves a different problem (privacy) at a different layer of the stack.
 
 ## Architecture
 
