@@ -138,7 +138,8 @@ Each sub-crate is usable independently. `sb-receipt` is deliberately minimal (ze
 
 - **…use Docker?** Docker is great but heavy for CI, edge, and dev-laptop agents. `sb-runtime` is 8 MB and starts instantly.
 - **…use OpenShell?** OpenShell is the right design, but it expects Docker/OCI/k3s/gateway infrastructure. `sb-runtime` is the local-first version of the same idea. AGT's `agent-os-kernel` can talk to either; swap via config.
-- **…use firejail / bubblewrap?** Those are filesystem sandboxes. They don't evaluate Cedar policy before the exec, and they don't emit signed receipts. Combine them with `sb-runtime` if you want — `sb` does Cedar + receipts + Landlock+seccomp, they do extra fs isolation layers.
+- **…use [nono](https://github.com/always-further/nono)?** nono is the primary prior-art reference for kernel-native agent sandboxing (Landlock on Linux, Seatbelt on macOS). If you want a dedicated, battle-tested sandbox layer with Python / TypeScript / Rust / C bindings, **use nono** and run `sb-runtime` in `--ring 2` mode for Cedar evaluation + signed receipts on top. The AGT integration guide at [`docs/integrations/sb-runtime.md`](https://github.com/microsoft/agent-governance-toolkit/blob/main/docs/integrations/sb-runtime.md) documents this composition. `sb-runtime` bundles Cedar + Landlock + seccomp + receipts into one Rust binary; that is a convenience for single-binary deployments, not a claim that the sandbox primitives originate here.
+- **…use firejail / bubblewrap?** Those are filesystem sandboxes. They don't evaluate Cedar policy before the exec, and they don't emit signed receipts. Combine them with `sb-runtime` if you want; `sb` does Cedar + receipts + Landlock + seccomp, they do extra filesystem isolation layers.
 - **…just use Cedar?** Cedar decides. It doesn't enforce or audit. `sb-runtime` is the enforcement layer.
 
 ## Integrating with Microsoft's Agent Governance Toolkit
@@ -156,9 +157,21 @@ Apache-2.0. No runtime dependencies on ScopeBlind services; no telemetry. The op
 
 We're looking for 3–5 engineers to co-design the AGT provider interface, the Cedar schema for agent actions, and the macOS / Windows backend priorities. If you're building in this space (agent governance, policy-as-code, secure-element attestation, transparency-log anchoring), open an issue or reach out — early partners get direct input on API surface before v0.1 stabilises.
 
+## Prior art and attribution
+
+`sb-runtime` packages four existing building blocks into one Rust binary. None of these primitives originate here, and this section is the authoritative reference for what comes from where:
+
+- **Landlock + seccomp sandboxing** — Linux kernel LSM and BPF primitives shipped in the mainline kernel. Any userspace Linux sandbox uses the same syscalls.
+- **[nono](https://github.com/always-further/nono)** (Apache-2.0, Always Further and ~50 individual contributors, created Feb 2026) — the primary open-source reference for kernel-native agent sandboxing with Landlock (Linux) and Seatbelt (macOS) backends, plus a capability-set abstraction and Python / TypeScript / Rust / C bindings. If you are picking a sandbox layer in isolation, nono is the mature choice. `sb-runtime`'s Linux sandbox path uses the same Landlock primitives and the same `exec -- <cmd>` UNIX convention because they are dictated by the platform, not because the code was derived from nono's source. The recommended composition is **nono as the sandbox layer with `sb-runtime --ring 2` for Cedar + receipts on top**; see the AGT integration guide at [`docs/integrations/sb-runtime.md`](https://github.com/microsoft/agent-governance-toolkit/blob/main/docs/integrations/sb-runtime.md#composing-sb-runtime-with-nono).
+- **Cedar** (AWS, Apache-2.0) — policy engine. `sb-runtime` embeds Cedar as-is; no modifications.
+- **Veritas Acta signed receipts** — receipt format and verifier. Apache-2.0, IETF draft-farley-acta-signed-receipts, implemented across `@veritasacta/verify`, `protect-mcp`, and `protect-mcp-adk`. This is the only layer that originates inside the ScopeBlind / Veritas Acta project.
+
+The framing of "Docker/k3s is too heavy for CI and edge" was reinforced by Luke Hinds's framing in [microsoft/agent-governance-toolkit#748](https://github.com/microsoft/agent-governance-toolkit/issues/748). Credit where due.
+
 ## Related
 
 - [**Agent Governance Toolkit** (Microsoft)](https://github.com/microsoft/agent-governance-toolkit) — decision layer
+- [**nono** (Always Further)](https://github.com/always-further/nono) — kernel-native sandboxing (prior art, see above)
 - [**Cedar**](https://www.cedarpolicy.com/) (AWS) — policy engine
 - [**Sigstore**](https://sigstore.dev/) — transparency-log anchoring for receipt chains
 - [**Veritas Acta**](https://veritasacta.com) — open protocol for contestable public records
