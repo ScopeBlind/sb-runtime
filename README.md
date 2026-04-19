@@ -98,6 +98,16 @@ sb verify .receipts/
 
 The signed receipt format is compatible with [`@veritasacta/verify`](https://www.npmjs.com/package/@veritasacta/verify) — your auditor can verify a chain offline with `npx @veritasacta/verify .receipts/` without installing the `sb` binary.
 
+## Verification properties
+
+sb-runtime receipts are **offline-verifiable** and **tamper-evident**:
+
+- **Offline:** `@veritasacta/verify` contacts no server during verification. The math runs against a public key you source externally via `--key`, `--jwks`, or `--trust-anchor`.
+- **Tamper-evident:** any modification to the receipt payload, signature, or chain linkage breaks verification. Exit code 1 is proven tampering; exit 0 is proven authenticity.
+- **No vendor trust:** verification depends only on Ed25519 math and JCS canonicalization (both open standards). No ScopeBlind infrastructure is in the verification path.
+
+What this **does not** provide: **issuer-blind / unlinkable / zero-knowledge** verification in the VOPRF sense. The Ed25519 signature identifies the signer via the public key. For use cases that require the verifier cannot link receipts to the same signer (privacy-preserving metered authorization, anonymous credentials), see the [Veritas Acta VOPRF verifier](https://veritasacta.com/voprf) — a separate product with different cryptographic properties. `sb-runtime` doesn't need it for decision auditability; the two solve different problems.
+
 ## Architecture
 
 ```text
